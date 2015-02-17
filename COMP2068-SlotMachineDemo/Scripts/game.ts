@@ -24,16 +24,20 @@ var timesSpunCenter;
 var spinsRight;
 var timesSpunRight;
 
+var gameOn = false;
+var reset = false;
+
+
+
 function init() {
 
     timesSpunLeft = 0;
-    spinsLeft = 5;
+    
 
     timesSpunCenter = 0;
-    spinsCenter = 3;
+    
 
     timesSpunRight = 0;
-    spinsRight = 6;
 
     canvas = document.getElementById("canvas");
     stage = new createjs.Stage(canvas);
@@ -42,24 +46,35 @@ function init() {
     createjs.Ticker.addEventListener("tick", gameLoop);
     main();
 }
+
+function setSpinAmounts() {
+    spinsLeft = Math.floor(Math.random() * 7 + 1);
+    spinsCenter = Math.floor(Math.random() * 7 + 1);
+    spinsRight = Math.floor(Math.random() * 7 + 1);
+}
  
 function gameLoop() {
 
-    //Spin the left reel
-    leftReelSpin();
+    if (reset == true) {
+        reset = false;
+        timesSpunLeft = 0;
+        timesSpunRight = 0;
+        timesSpunCenter = 0;
+    }
 
-    //Spin the left reel
-    centerReelSpin();
+    if (gameOn == true) {
+        //Spin the left reel
+        leftReelSpin();
 
-    //Spin the right reel
-    rightReelSpin();
-    
-    // Refreshes our stage
-    stage.update(); 
+        //Spin the left reel
+        centerReelSpin();
 
-    console.log("currentImageCenter = " + currentImageCenter)
+        //Spin the right reel
+        rightReelSpin();
+    }
 
-
+    stage.update();
+    //console.log("currentImageCenter = " + currentImageCenter)
 
     //Testing
    // console.log("Spins = " + spinsLeft)
@@ -105,11 +120,25 @@ function rightReelSpin() {
 }
 
 // Event handlers
-function backgroundClicked() {
-   // helloText.text = "Good Bye";
-   // helloText.regX = helloText.getBounds().width * 0.5;
-   // helloText.regY = helloText.getBounds().height * 0.5;
-    
+function backgroundClicked(e) {
+  
+
+    var xPosition = e.clientX;
+    var yPosition = e.clientY;
+
+   // if (e.clientX < 325 && e.clientY < 468) {
+    gameOn = true;
+    reset = true;
+    setSpinAmounts();
+   // }
+
+    console.log("x = " + e.clientX)
+    console.log("y = " + e.clientYw)
+
+}
+
+function printFunds() {
+
 }
 
 function backgroundOut() {
@@ -158,6 +187,9 @@ function main() {
     rightReel.scaleX = 1.5;
     rightReel.scaleY = 1.5;
 
+    //Add spin button
+
+
        
     //Add the left reel behind the background
     stage.addChild(leftReel);
@@ -170,10 +202,10 @@ function main() {
 
     //Add the slot machine above the reels
     stage.addChild(background);
-
-    
    
-   // background.addEventListener("click", backgroundClicked);
+    background.addEventListener("click", backgroundClicked, false);
+
+
     //background.addEventListener("mouseover", backgroundOver);
     //background.addEventListener("mouseout", backgroundOut);
    
