@@ -26,10 +26,24 @@ var timesSpunRight;
 var gameOn = false;
 var reset = false;
 
+//The LOCATION where the values shall be placed.
 var currentBalance;
 var currentBet;
+var currentJackPot;
+var jackPotWon;
+var betWon;
+var betLost;
+
+//The values of the various money
 var bal;
 var bet;
+var jackPot;
+
+//Flags
+var jp;
+var won;
+var lost;
+
 var payOut = false;
 
 
@@ -41,6 +55,7 @@ function init() {
 
     bal = 500;
     bet = 50;
+    jackPot = 500;
 
     canvas = document.getElementById("canvas");
     stage = new createjs.Stage(canvas);
@@ -64,6 +79,10 @@ function gameLoop() {
         timesSpunLeft = 0;
         timesSpunRight = 0;
         timesSpunCenter = 0;
+
+        currentImageLeft = 0;
+        currentImageRight = 0;
+        currentImageCenter = 0;
     }
 
     //This flag determines if the game has been started by the user, or if the page has just been loaded. When they click to start, the game begins.
@@ -102,16 +121,77 @@ function updateStages() {
     displayMoney();
     stage.addChild(currentBalance);
     stage.addChild(currentBet);
+    stage.addChild(currentJackPot);
+
+    if (jp == true) { //Display a message that they have won the jackpot!
+        stage.addChild(jackPotWon);
+        jp = false;
+    }
+
+    if (won == true) { //Display a message that they have won 
+        stage.addChild(betWon);
+        won = false;
+    }
+
+    if (lost == true) { //Display a message that they have won 
+        stage.addChild(betLost);
+        lost = false;
+    }
 }
 
 function winOrLoose() {
-    //Three of the same, you win!
-    if (currentImageLeft == currentImageRight && currentImageRight == currentImageCenter)
+    //Since the reels are incremented each time they are spun, the value of currentImage is always one ahead of the actual displayed image.
+    currentImageLeft --;
+    currentImageRight --;
+    currentImageCenter--;
+
+    //Three BARS! You win the jackpot!
+    if (currentImageLeft == 1 && currentImageRight == 1 && currentImageCenter == 1) {
+        bal = (bal + jackPot);
+        jackPot = 0;
+        //Set a flag that they hit the Jack Pot
+        jp = true;
+        return;
+    }
+
+    //Three of the same, you WIN!
+    if (currentImageLeft == currentImageRight && currentImageRight == currentImageCenter) {
         bal = (bal + bet);
 
-    //Three of not the same, you loose!
-    if (currentImageLeft != currentImageRight || currentImageRight != currentImageCenter)
+        //Set a flag that they won.
+        won = true;
+        return;
+    }
+
+    //Gold bars are WILD, 2 WILDS = WIN!
+    if (currentImageLeft == 1 && currentImageRight == 1 || currentImageCenter == 1 && currentImageRight == 1 || currentImageCenter == 1 && currentImageLeft == 1){
+        bal = (bal + bet);
+
+        //Set a flag that they won.
+        won = true;
+        return;
+    }
+
+    //Two match and one WILD, you WIN!
+    if (currentImageLeft == currentImageRight && currentImageCenter == 1 || currentImageRight == currentImageCenter && currentImageLeft == 1 || currentImageLeft == currentImageCenter && currentImageRight == 1){
+        bal = (bal + bet);
+
+        //Set a flag that they won.
+        won = true;
+        return;
+    }
+
+    //Three not the same, nor with WILDS, you LOOSE!
+    if (currentImageLeft != currentImageRight || currentImageRight != currentImageCenter){
         bal = (bal - bet);
+
+        //They lost, add half their bet to the jackpot.
+        jackPot = jackPot + (bet / 2);
+
+        //Set a flag that they lost.
+        lost = true;
+        return;
+    }
 }
 
 //Spin the left reel
@@ -151,10 +231,31 @@ function displayMoney() {
     currentBalance.x = 400;
     currentBalance.y = 405;
 
-    //Display default bet
+    //Display bet
     currentBet = new createjs.Text("Bet:" + "$" + bet, "25px Consolas", "#FFFFFF");
     currentBet.x = 630;
     currentBet.y = 405;
+
+    //Display jackpot 
+    currentJackPot = new createjs.Text("JackPot:" + "$" + jackPot, "25px Consolas", "#FFFFFF");
+    currentJackPot.x = 860;
+    currentJackPot.y = 405;
+ 
+    //Display won the jackpot notice
+    jackPotWon = new createjs.Text("JackPot!!!", "25px Consolas", "#FFFFFF");
+    jackPotWon.x = 630;
+    jackPotWon.y = 150;
+
+    //Display won the jackpot notice
+    betWon = new createjs.Text("You WIN!", "25px Consolas", "#FFFFFF");
+    betWon.x = 630;
+    betWon.y = 150;
+
+    //Display won the jackpot notice
+    betLost = new createjs.Text("You LOOSE!", "25px Consolas", "#FFFFFF");
+    betLost.x = 630;
+    betLost.y = 150;
+    
 }
 
 //Spin the right reel
