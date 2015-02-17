@@ -6,14 +6,33 @@ var stage;
 var background;
 var stageHeight;
 var stageWidth;
+
 var leftReel;
-var currentImage = 1;
-var spins;
-var timesSpun;
+var centerReel;
+var rightReel;
+
+var currentImageLeft = 1;
+var currentImageCenter = 1;
+var currentImageRight = 1;
+
+var spinsLeft;
+var timesSpunLeft;
+
+var spinsCenter;
+var timesSpunCenter;
+
+var spinsRight;
+var timesSpunRight;
 
 function init() {
-    timesSpun = 0;
-    spins = 5;
+    timesSpunLeft = 0;
+    spinsLeft = 5;
+
+    timesSpunCenter = 0;
+    spinsCenter = 3;
+
+    timesSpunRight = 0;
+    spinsRight = 6;
 
     canvas = document.getElementById("canvas");
     stage = new createjs.Stage(canvas);
@@ -24,20 +43,54 @@ function init() {
 }
 
 function gameLoop() {
-    // if (timesSpun == spins)
-    //    leftReel.regY = -170;
-    if (leftReel.regY <= -250 && (timesSpun < spins))
-        newReel();
-    else if (timesSpun < spins)
-        leftReel.regY = (leftReel.regY - 10);
-    else if (timesSpun == spins && (leftReel.regY > -170))
-        leftReel.regY = (leftReel.regY - 10);
+    //Spin the left reel
+    leftReelSpin();
 
-    stage.update(); // Refreshes our stage
+    //Spin the left reel
+    centerReelSpin();
 
+    //Spin the right reel
+    rightReelSpin();
+
+    // Refreshes our stage
+    stage.update();
+
+    console.log("currentImageCenter = " + currentImageCenter);
     //Testing
-    console.log("Spins = " + spins);
-    console.log("timesSpun = " + timesSpun);
+    // console.log("Spins = " + spinsLeft)
+    // console.log("timesSpun = " + timesSpunLeft)
+}
+
+function leftReelSpin() {
+    //Left Reel Section
+    if (leftReel.regY <= -250 && (timesSpunLeft < spinsLeft))
+        newReelLeft();
+    else if (timesSpunLeft < spinsLeft)
+        leftReel.regY = (leftReel.regY - 10);
+    else if (timesSpunLeft == spinsLeft && (leftReel.regY > -170))
+        leftReel.regY = (leftReel.regY - 10);
+}
+
+//Spin the center reel
+function centerReelSpin() {
+    //Center Reel Section
+    if (centerReel.regY <= -250 && (timesSpunCenter < spinsCenter))
+        newReelCenter();
+    else if (timesSpunCenter < spinsCenter)
+        centerReel.regY = (centerReel.regY - 10);
+    else if (timesSpunCenter == spinsCenter && (centerReel.regY > -170))
+        centerReel.regY = (centerReel.regY - 10);
+}
+
+//Spin the right reel
+function rightReelSpin() {
+    //Center Reel Section
+    if (rightReel.regY <= -250 && (timesSpunRight < spinsRight))
+        newReelRight();
+    else if (timesSpunRight < spinsRight)
+        rightReel.regY = (rightReel.regY - 10);
+    else if (timesSpunRight == spinsRight && (rightReel.regY > -170))
+        rightReel.regY = (rightReel.regY - 10);
 }
 
 // Event handlers
@@ -70,20 +123,38 @@ function main() {
     background.regX = -90;
     background.regY = -20;
 
-    //Default REEL*********************
-    //Scale and position the reels
+    //Scale and position the left reel
     leftReel = new createjs.Bitmap("assets/images/Melon.png");
     leftReel.regX = -250;
     leftReel.regY = -100;
     leftReel.scaleX = 1.5;
     leftReel.scaleY = 1.5;
 
+    //Scale and position the center reel
+    centerReel = new createjs.Bitmap("assets/images/Melon.png");
+    centerReel.regX = -420;
+    centerReel.regY = -100;
+    centerReel.scaleX = 1.5;
+    centerReel.scaleY = 1.5;
+
+    //Scale and position the center reel
+    rightReel = new createjs.Bitmap("assets/images/Melon.png");
+    rightReel.regX = -590;
+    rightReel.regY = -100;
+    rightReel.scaleX = 1.5;
+    rightReel.scaleY = 1.5;
+
     //Add the left reel behind the background
     stage.addChild(leftReel);
 
-    //DEFAULT REEL END *******************
-    stage.addChild(background);
+    //Add the center reel behind the background
+    stage.addChild(centerReel);
+
+    //Add the center reel behind the background
+    stage.addChild(rightReel);
+
     //Add the slot machine above the reels
+    stage.addChild(background);
     // background.addEventListener("click", backgroundClicked);
     //background.addEventListener("mouseover", backgroundOver);
     //background.addEventListener("mouseout", backgroundOut);
@@ -94,12 +165,12 @@ function main() {
     // helloText.y = stage.canvas.height * 0.5;
 }
 
-function newReel() {
+function newReelLeft() {
     //Clear the stage
     stage.clear();
 
-    if (timesSpun < spins) {
-        switch (currentImage) {
+    if (timesSpunLeft < spinsLeft) {
+        switch (currentImageLeft) {
             case 0:
                 //Scale and position the reels
                 leftReel = new createjs.Bitmap("assets/images/Melon.png");
@@ -114,8 +185,8 @@ function newReel() {
                 //Bring the background back to front
                 stage.addChild(background);
 
-                currentImage++;
-                timesSpun++;
+                currentImageLeft++;
+                timesSpunLeft++;
                 break;
 
             case 1:
@@ -132,8 +203,8 @@ function newReel() {
                 //Bring the background back to front
                 stage.addChild(background);
 
-                currentImage++;
-                timesSpun++;
+                currentImageLeft++;
+                timesSpunLeft++;
                 break;
 
             case 2:
@@ -150,8 +221,134 @@ function newReel() {
                 //Bring the background back to front
                 stage.addChild(background);
 
-                currentImage = 0;
-                timesSpun++;
+                currentImageLeft = 0;
+                timesSpunLeft++;
+                break;
+        }
+    }
+}
+
+function newReelCenter() {
+    //Clear the stage
+    stage.clear();
+
+    if (timesSpunCenter < spinsCenter) {
+        switch (currentImageCenter) {
+            case 0:
+                //Scale and position the reels
+                centerReel = new createjs.Bitmap("assets/images/Melon.png");
+                centerReel.regY = -100;
+                centerReel.regX = -420;
+                centerReel.scaleX = 1.5;
+                centerReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(centerReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageCenter++;
+                timesSpunCenter++;
+                break;
+
+            case 1:
+                //Scale and position the reels
+                centerReel = new createjs.Bitmap("assets/images/Bar.png");
+                centerReel.regY = -100;
+                centerReel.regX = -420;
+                centerReel.scaleX = 1.5;
+                centerReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(centerReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageCenter++;
+                timesSpunCenter++;
+                break;
+
+            case 2:
+                //Scale and position the reels
+                centerReel = new createjs.Bitmap("assets/images/Lemon.png");
+                centerReel.regY = -100;
+                centerReel.regX = -420;
+                centerReel.scaleX = 1.5;
+                centerReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(centerReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageCenter = 0;
+                timesSpunCenter++;
+                break;
+        }
+    }
+}
+
+function newReelRight() {
+    //Clear the stage
+    stage.clear();
+
+    if (timesSpunRight < spinsRight) {
+        switch (currentImageRight) {
+            case 0:
+                //Scale and position the reels
+                rightReel = new createjs.Bitmap("assets/images/Melon.png");
+                rightReel.regY = -100;
+                rightReel.regX = -590;
+                rightReel.scaleX = 1.5;
+                rightReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(rightReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageRight++;
+                timesSpunRight++;
+                break;
+
+            case 1:
+                //Scale and position the reels
+                rightReel = new createjs.Bitmap("assets/images/Bar.png");
+                rightReel.regY = -100;
+                rightReel.regX = -590;
+                rightReel.scaleX = 1.5;
+                rightReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(rightReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageRight++;
+                timesSpunRight++;
+                break;
+
+            case 2:
+                //Scale and position the reels
+                rightReel = new createjs.Bitmap("assets/images/Lemon.png");
+                rightReel.regY = -100;
+                rightReel.regX = -590;
+                rightReel.scaleX = 1.5;
+                rightReel.scaleY = 1.5;
+
+                //Add the left reel behind the background
+                stage.addChild(rightReel);
+
+                //Bring the background back to front
+                stage.addChild(background);
+
+                currentImageRight = 0;
+                timesSpunRight++;
                 break;
         }
     }
