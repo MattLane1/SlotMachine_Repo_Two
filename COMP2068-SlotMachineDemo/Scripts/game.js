@@ -4,8 +4,6 @@ var stage;
 // Game Objects
 //var helloText: createjs.Text;
 var background;
-var stageHeight;
-var stageWidth;
 
 var leftReel;
 var centerReel;
@@ -28,7 +26,10 @@ var gameOn = false;
 var reset = false;
 
 var currentBalance;
+var currentBet;
 var bal;
+var bet;
+var payOut = false;
 
 function init() {
     timesSpunLeft = 0;
@@ -36,6 +37,7 @@ function init() {
     timesSpunRight = 0;
 
     bal = 500;
+    bet = 50;
 
     canvas = document.getElementById("canvas");
     stage = new createjs.Stage(canvas);
@@ -71,6 +73,13 @@ function gameLoop() {
 
         //Spin the right reel
         rightReelSpin();
+
+        //The spins are complete! Did they win or loose...?
+        if (payOut == true && timesSpunLeft == spinsLeft && timesSpunRight == spinsRight && timesSpunCenter == spinsCenter) {
+            winOrLoose();
+            updateStages();
+            payOut = false;
+        }
     }
 
     stage.update();
@@ -86,8 +95,20 @@ function updateStages() {
     //Bring the background back to front
     stage.addChild(background);
 
-    //Display the balance values
+    //Display the cash values
+    displayMoney();
     stage.addChild(currentBalance);
+    stage.addChild(currentBet);
+}
+
+function winOrLoose() {
+    //Three of the same, you win!
+    if (currentImageLeft == currentImageRight && currentImageRight == currentImageCenter)
+        bal = (bal + bet);
+
+    //Three of not the same, you loose!
+    if (currentImageLeft != currentImageRight || currentImageRight != currentImageCenter)
+        bal = (bal - bet);
 }
 
 //Spin the left reel
@@ -112,6 +133,19 @@ function centerReelSpin() {
         centerReel.regY = (centerReel.regY - 10);
 }
 
+//Display the current values of balance, bet and jackpot
+function displayMoney() {
+    //Display starting money
+    currentBalance = new createjs.Text("Bal:" + "$" + bal, "25px Consolas", "#FFFFFF");
+    currentBalance.x = 400;
+    currentBalance.y = 405;
+
+    //Display default bet
+    currentBet = new createjs.Text("Bet:" + "$" + bet, "25px Consolas", "#FFFFFF");
+    currentBet.x = 630;
+    currentBet.y = 405;
+}
+
 //Spin the right reel
 function rightReelSpin() {
     //If the current image has reached the bottom of the viewing window, and we are not at the max number of spins, get the next image and continue.
@@ -132,6 +166,7 @@ function backgroundClicked(e) {
     // if (e.clientX < 325 && e.clientY < 468) {
     gameOn = true;
     reset = true;
+    payOut = true;
     setSpinAmounts();
 
     // }
@@ -139,20 +174,8 @@ function backgroundClicked(e) {
     console.log("y = " + e.clientYw);
 }
 
-function backgroundOut() {
-    background.alpha = 1.0;
-}
-
-function backgroundOver() {
-    background.alpha = 0.5;
-}
-
 //The main function
 function main() {
-    //Get the dimensions of the stage
-    stageWidth = stage.canvas.width;
-    stageHeight = stage.canvas.height;
-
     // Bitmap background
     background = new createjs.Bitmap("assets/images/NewSlot.png");
 
@@ -186,11 +209,6 @@ function main() {
     //Watch for a click to start spinning reels
     background.addEventListener("click", backgroundClicked, false);
 
-    //Display starting money
-    currentBalance = new createjs.Text("Bal: " + "$" + bal, "30px Consolas", "#FFFFFF");
-    currentBalance.x = 400;
-    currentBalance.y = 395;
-
     //This function updates all the stages to display the new images.
     updateStages();
 }
@@ -200,6 +218,7 @@ function newReelLeft() {
     //Clear the stage
     stage.clear();
 
+    //If we need a new reel image, get the next one.
     if (timesSpunLeft < spinsLeft) {
         switch (currentImageLeft) {
             case 0:
@@ -210,8 +229,10 @@ function newReelLeft() {
                 leftReel.scaleX = 1.5;
                 leftReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageLeft++;
                 timesSpunLeft++;
                 break;
@@ -224,8 +245,10 @@ function newReelLeft() {
                 leftReel.scaleX = 1.5;
                 leftReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageLeft++;
                 timesSpunLeft++;
                 break;
@@ -238,8 +261,10 @@ function newReelLeft() {
                 leftReel.scaleX = 1.5;
                 leftReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageLeft = 0;
                 timesSpunLeft++;
                 break;
@@ -252,6 +277,7 @@ function newReelCenter() {
     //Clear the stage
     stage.clear();
 
+    //If we need a new reel image, get the next one.
     if (timesSpunCenter < spinsCenter) {
         switch (currentImageCenter) {
             case 0:
@@ -262,8 +288,10 @@ function newReelCenter() {
                 centerReel.scaleX = 1.5;
                 centerReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageCenter++;
                 timesSpunCenter++;
                 break;
@@ -276,8 +304,10 @@ function newReelCenter() {
                 centerReel.scaleX = 1.5;
                 centerReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageCenter++;
                 timesSpunCenter++;
                 break;
@@ -290,8 +320,10 @@ function newReelCenter() {
                 centerReel.scaleX = 1.5;
                 centerReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageCenter = 0;
                 timesSpunCenter++;
                 break;
@@ -304,6 +336,7 @@ function newReelRight() {
     //Clear the stage
     stage.clear();
 
+    //If we need a new reel image, get the next one.
     if (timesSpunRight < spinsRight) {
         switch (currentImageRight) {
             case 0:
@@ -314,8 +347,10 @@ function newReelRight() {
                 rightReel.scaleX = 1.5;
                 rightReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageRight++;
                 timesSpunRight++;
                 break;
@@ -328,8 +363,10 @@ function newReelRight() {
                 rightReel.scaleX = 1.5;
                 rightReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageRight++;
                 timesSpunRight++;
                 break;
@@ -342,8 +379,10 @@ function newReelRight() {
                 rightReel.scaleX = 1.5;
                 rightReel.scaleY = 1.5;
 
+                //Update the stages
                 updateStages();
 
+                //Change image
                 currentImageRight = 0;
                 timesSpunRight++;
                 break;
