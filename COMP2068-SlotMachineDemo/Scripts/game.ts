@@ -1,9 +1,12 @@
-﻿//Paint-able objects
+﻿/*ASSIGNMENT TWO, WEB PROGRAMMING*/
+
+
+//Paint-able objects
 var canvas;
 var stage: createjs.Stage;
 
 //Slot machine background image
-var background: createjs.Bitmap;
+var background: createjs.Bitmap; 
 
 //Reel images
 var leftReel: createjs.Bitmap;
@@ -158,9 +161,12 @@ function init() {
 
 //Handlers
 function betOneClicked() {
-    //Increase current bet by 50
-    if (bet < 200)
+    //Increase current bet by 50 until it hits max, then loop back to the start (50)
+    if (bet <= 200)
         bet = (bet + 50);
+
+    if (bet == 250)
+        bet = 50;
 
     updateStages(false);
 }
@@ -296,17 +302,20 @@ function updateStages(reels) {
 
     if (jp == true) { //Display a message that they have won the jackpot!
         stage.addChild(jackPotWon);
-        jp = false;
+        won = false;
+        lost = false;
     }
       
     if (won == true) { //Display a message that they have won 
         stage.addChild(betWon);
-        won = false;
+        lost = false;
+        jp = false;
     }
 
     if (lost == true) { //Display a message that they have won 
         stage.addChild(betLost);
-        lost = false;
+        won = false;
+        jp = false;
     }
 
     //Display the cash values
@@ -429,18 +438,18 @@ function centerReelSpin() {
 //Display the current values of balance, bet and jackpot
 function displayMoney() {
     //Display starting money
-    currentBalance = new createjs.Text("Bal:" + "$" + bal, "25px Consolas", "#FFFFFF");
-    currentBalance.x = 400;
+    currentBalance = new createjs.Text("Bal:" + "$" + bal, "20px Consolas", "#FFFFFF");
+    currentBalance.x = 350;
     currentBalance.y = 405;
 
     //Display bet
-    currentBet = new createjs.Text("Bet:" + "$" + bet, "25px Consolas", "#FFFFFF");
+    currentBet = new createjs.Text("Bet:" + "$" + bet, "20px Consolas", "#FFFFFF");
     currentBet.x = 630;
     currentBet.y = 405;
 
     //Display jackpot 
-    currentJackPot = new createjs.Text("JackPot:" + "$" + jackPot, "25px Consolas", "#FFFFFF");
-    currentJackPot.x = 860;
+    currentJackPot = new createjs.Text("JackPot:" + "$" + jackPot, "20px Consolas", "#FFFFFF");
+    currentJackPot.x = 780;
     currentJackPot.y = 405;
 
     //Add money to the game
