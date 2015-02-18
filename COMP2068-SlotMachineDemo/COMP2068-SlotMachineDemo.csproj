@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="assets\images\backgroundT.png" />
+    <Content Include="assets\images\betMaxButton_Disabled.png" />
     <Content Include="assets\images\NewSlot.png" />
     <Content Include="assets\images\spin.jpg" />
     <Content Include="graphic coordinates.xlsx" />

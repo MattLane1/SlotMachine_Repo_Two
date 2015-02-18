@@ -1,22 +1,36 @@
-﻿var canvas;
+﻿//Paint-able objects
+var canvas;
 var stage;
 
-// Game Objects
-//var helloText: createjs.Text;
+//Slot machine background image
 var background;
 
+//Reel images
 var leftReel;
 var centerReel;
 var rightReel;
 
+//To allow for the required default image on reels before spinning
 var defaultReelL;
 var defaultReelC;
 var defaultReelR;
 
+//Buttons
+var button_BetOne;
+var button_BetMax;
+var button_Reset;
+var button_Spin;
+
+//Disabled
+var button_MaxBet_Disabled;
+var button_BetOne_Disabled;
+
+//Keep track of which image is being displayed, so we know what score they got
 var currentImageLeft = 1;
 var currentImageCenter = 1;
 var currentImageRight = 1;
 
+//Reel spin controls
 var spinsLeft;
 var timesSpunLeft;
 
@@ -26,9 +40,6 @@ var timesSpunCenter;
 var spinsRight;
 var timesSpunRight;
 
-var gameOn = false;
-var reset = false;
-
 //The LOCATION where the values shall be placed.
 var currentBalance;
 var currentBet;
@@ -36,8 +47,9 @@ var currentJackPot;
 var jackPotWon;
 var betWon;
 var betLost;
+var betTooHigh;
 
-//The values of the various money
+//The balances of the various money amounts
 var bal;
 var bet;
 var jackPot;
@@ -46,39 +58,146 @@ var jackPot;
 var jp;
 var won;
 var lost;
-
-var payOut = false;
+var payOut;
+var gameOn = false;
+var reset = false;
 
 function init() {
+    //Default values
     timesSpunLeft = 0;
     timesSpunCenter = 0;
     timesSpunRight = 0;
-
     bal = 500;
     bet = 50;
     jackPot = 500;
+    payOut = false;
 
+    //**Game Set Up**
+    //Set up canvas and stage
     canvas = document.getElementById("canvas");
     stage = new createjs.Stage(canvas);
 
-    //stage.enableMouseOver(20); // Enable mouse events
+    //Create ticker to cause game loop
     createjs.Ticker.setFPS(60); // 60 frames per second
     createjs.Ticker.addEventListener("tick", gameLoop);
 
-    // Bitmap background
+    //**Bitmap Images**
+    //Background
     background = new createjs.Bitmap("assets/images/NewSlot.png");
 
-    //Scale and position the background image
+    //**Buttons**
+    button_BetOne = new createjs.Bitmap("assets/images/betOneButton.png");
+    button_BetMax = new createjs.Bitmap("assets/images/betMaxButton.png");
+    button_Reset = new createjs.Bitmap("assets/images/resetButton.png");
+    button_Spin = new createjs.Bitmap("assets/images/spinButton.png");
+    button_Reset = new createjs.Bitmap("assets/images/resetButton.png");
+
+    //Disabled Buttons
+    button_MaxBet_Disabled = new createjs.Bitmap("assets/images/betMaxButton_Disabled.png");
+    button_BetOne_Disabled = new createjs.Bitmap("assets/images/betOneButton_Disabled.png");
+
+    //**Event Handlers**
+    button_BetOne.addEventListener("click", betOneClicked, false);
+    button_BetMax.addEventListener("click", betMaxClicked, false);
+    button_Reset.addEventListener("click", resetClicked, false);
+    button_Spin.addEventListener("click", spinClicked, false);
+
+    //***Scaling and positioning***
+    //Background
     background.scaleX = 2.30;
     background.scaleY = 1.30;
     background.regX = -90;
     background.regY = -20;
 
-    //Watch for a click to start spinning reels
-    background.addEventListener("click", backgroundClicked, false);
+    //Spin Button
+    button_Spin.regX = -348;
+    button_Spin.regY = -265;
+    button_Spin.scaleX = 2.7;
+    button_Spin.scaleY = 1.9;
+
+    //BetOne Button
+    button_BetOne.regX = -197;
+    button_BetOne.regY = -284;
+    button_BetOne.scaleX = 2.8;
+    button_BetOne.scaleY = 1.8;
+
+    //BetMax Button
+    button_BetMax.regX = -245;
+    button_BetMax.regY = -284;
+    button_BetMax.scaleX = 2.8;
+    button_BetMax.scaleY = 1.8;
+
+    //Reset Button
+    button_Reset.regX = -102;
+    button_Reset.regY = -284;
+    button_Reset.scaleX = 2.8;
+    button_Reset.scaleY = 1.8;
+
+    //Messages
+    //Display won the jackpot notice
+    jackPotWon = new createjs.Text("JackPot!!!", "25px Consolas", "#FFFFFF");
+    jackPotWon.x = 630;
+    jackPotWon.y = 150;
+
+    //Display won the jackpot notice
+    betWon = new createjs.Text("You WIN!", "25px Consolas", "#FFFFFF");
+    betWon.x = 630;
+    betWon.y = 150;
+
+    //Display won the jackpot notice
+    betLost = new createjs.Text("You LOOSE!", "25px Consolas", "#FFFFFF");
+    betLost.x = 630;
+    betLost.y = 150;
+
+    //Display the default images on the reel, "Spin"
+    defaultReelImage();
 
     //This function updates all the stages to display the new images.
-    updateStages();
+    updateStages(false);
+}
+
+//Handlers
+function betOneClicked() {
+    //Increase current bet by 50
+    if (bet < 200)
+        bet = (bet + 50);
+
+    updateStages(false);
+}
+
+//Big spender. Max bet is 200!
+function betMaxClicked() {
+    if (bal >= 200)
+        bet = 200;
+
+    updateStages(false);
+}
+
+//Reset the game
+function resetClicked() {
+    bal = 500;
+    bet = 50;
+    jackPot = 500;
+    won = false;
+    lost = false;
+    jp = false;
+
+    displayMoney();
+    defaultReelImage();
+    updateStages(true);
+}
+
+//Spin them wheels!
+function spinClicked() {
+    clearSlots();
+
+    gameOn = true;
+    reset = true;
+    payOut = true;
+    setSpinAmounts();
+
+    setUpReels();
+    updateStages(false);
 }
 
 function setUpReels() {
@@ -111,7 +230,14 @@ function setSpinAmounts() {
     spinsRight = Math.floor(Math.random() * 7 + 1);
 }
 
+function moneyMonitor() {
+    //if (bal - 200 < 0)
+}
+
 function gameLoop() {
+    //Keep an eye on their balance, bet, grey out specific buttons where needed, etc.
+    moneyMonitor();
+
     //When the user clicks to start a new game, we need to reset some things.
     if (reset == true) {
         reset = false;
@@ -138,7 +264,7 @@ function gameLoop() {
         //The spins are complete! Did they win or loose...?
         if (payOut == true && timesSpunLeft == spinsLeft && timesSpunRight == spinsRight && timesSpunCenter == spinsCenter) {
             winOrLoose();
-            updateStages();
+            updateStages(false);
             payOut = false;
         }
     }
@@ -147,19 +273,24 @@ function gameLoop() {
 }
 
 //This function updates the stage in the correct order, and keeps everything on screen
-function updateStages() {
-    //Default starting position for reels
-    if (gameOn == false) {
-        defaultReelImage();
+function updateStages(reels) {
+    //When we need the default reels, like when we reset, we dont need these added on top of them, so skip this part.
+    if (reels != true) {
+        //Add the left reel behind the background
+        stage.addChild(leftReel);
+        stage.addChild(centerReel);
+        stage.addChild(rightReel);
     }
+    reels = false;
 
-    //Add the left reel behind the background
-    stage.addChild(leftReel);
-    stage.addChild(centerReel);
-    stage.addChild(rightReel);
-
-    //Bring the background back to front
+    //Bring the background to front
     stage.addChild(background);
+
+    //Add the buttons
+    stage.addChild(button_Spin);
+    stage.addChild(button_BetOne);
+    stage.addChild(button_BetMax);
+    stage.addChild(button_Reset);
 
     if (jp == true) {
         stage.addChild(jackPotWon);
@@ -178,13 +309,13 @@ function updateStages() {
 
     //Display the cash values
     displayMoney();
-    stage.addChild(currentBalance);
-    stage.addChild(currentBet);
-    stage.addChild(currentJackPot);
 }
 
 //Set the default image into the first slots
 function defaultReelImage() {
+    //Clear the old images
+    clearSlots();
+
     //Display default in Left reel
     defaultReelL = new createjs.Bitmap("assets/images/spin.jpg");
     defaultReelL.regX = -350;
@@ -202,6 +333,8 @@ function defaultReelImage() {
     defaultReelR.regX = -850;
     defaultReelR.regY = -240;
     stage.addChild(defaultReelR);
+
+    stage.update();
 }
 
 function winOrLoose() {
@@ -210,7 +343,7 @@ function winOrLoose() {
     currentImageRight--;
     currentImageCenter--;
 
-    updateStages();
+    updateStages(false);
 
     //Three BARS! You win the jackpot!
     if (currentImageLeft == 1 && currentImageRight == 1 && currentImageCenter == 1) {
@@ -301,20 +434,10 @@ function displayMoney() {
     currentJackPot.x = 860;
     currentJackPot.y = 405;
 
-    //Display won the jackpot notice
-    jackPotWon = new createjs.Text("JackPot!!!", "25px Consolas", "#FFFFFF");
-    jackPotWon.x = 630;
-    jackPotWon.y = 150;
-
-    //Display won the jackpot notice
-    betWon = new createjs.Text("You WIN!", "25px Consolas", "#FFFFFF");
-    betWon.x = 630;
-    betWon.y = 150;
-
-    //Display won the jackpot notice
-    betLost = new createjs.Text("You LOOSE!", "25px Consolas", "#FFFFFF");
-    betLost.x = 630;
-    betLost.y = 150;
+    //Add money to the game
+    stage.addChild(currentBalance);
+    stage.addChild(currentBet);
+    stage.addChild(currentJackPot);
 }
 
 //Spin the right reel
@@ -340,26 +463,6 @@ function clearSlots() {
     stage.removeChild(defaultReelC);
 }
 
-// Event handler
-function backgroundClicked(e) {
-    //Get the position of the mouse so we know if its on a button or not
-    var xPosition = e.clientX;
-    var yPosition = e.clientY;
-
-    clearSlots();
-
-    gameOn = true;
-    reset = true;
-    payOut = true;
-    setSpinAmounts();
-
-    setUpReels();
-
-    //  updateStages();
-    console.log("x = " + e.clientX);
-    console.log("y = " + e.clientYw);
-}
-
 //This function gets the next image in the reel for the left reel.
 function newReelLeft() {
     //Clear the stage
@@ -377,7 +480,7 @@ function newReelLeft() {
                 leftReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageLeft++;
@@ -393,7 +496,7 @@ function newReelLeft() {
                 leftReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageLeft++;
@@ -409,7 +512,7 @@ function newReelLeft() {
                 leftReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageLeft = 0;
@@ -436,7 +539,7 @@ function newReelCenter() {
                 centerReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageCenter++;
@@ -452,7 +555,7 @@ function newReelCenter() {
                 centerReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageCenter++;
@@ -468,7 +571,7 @@ function newReelCenter() {
                 centerReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageCenter = 0;
@@ -495,7 +598,7 @@ function newReelRight() {
                 rightReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageRight++;
@@ -511,7 +614,7 @@ function newReelRight() {
                 rightReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageRight++;
@@ -527,7 +630,7 @@ function newReelRight() {
                 rightReel.scaleY = 1.5;
 
                 //Update the stages
-                updateStages();
+                updateStages(false);
 
                 //Change image
                 currentImageRight = 0;
