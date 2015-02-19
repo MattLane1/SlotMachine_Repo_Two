@@ -1,5 +1,5 @@
 ﻿/*ASSIGNMENT TWO, WEB PROGRAMMING*/
-//Paint-able objects
+//Canvas and stage
 var canvas;
 var stage;
 
@@ -23,15 +23,19 @@ var button_Reset;
 var button_Spin;
 
 //Disabled
-var button_MaxBet_Disabled;
-var button_BetOne_Disabled;
+var button_Spin_Disabled;
 
 //Keep track of which image is being displayed, so we know what score they got
 var currentImageLeft = 1;
 var currentImageCenter = 1;
 var currentImageRight = 1;
 
-//Reel spin controls
+//These controls are for the placement of text messages on the background
+var currentBalance;
+var currentBet;
+var currentJackPot;
+
+//Reel spin controls (spinsLeft, center and right are how many times TO spin. Times spun is how many times it HAS BEEN spun)
 var spinsLeft;
 var timesSpunLeft;
 
@@ -41,30 +45,29 @@ var timesSpunCenter;
 var spinsRight;
 var timesSpunRight;
 
-//The LOCATION where the values shall be placed.
-var currentBalance;
-var currentBet;
-var currentJackPot;
-var jackPotWon;
+//Messages to the user
 var betWon;
 var betLost;
-var betTooHigh;
+var jackPotWon;
 
 //The balances of the various money amounts
 var bal;
 var bet;
 var jackPot;
 
-//Flags
+//Flags of events
 var jp;
 var won;
 var lost;
 var payOut;
-var gameOn = false;
-var reset = false;
+var gameOn;
+var reset;
+var disableSpin;
 
 function init() {
     //Default values
+    gameOn = false;
+    reset = false;
     timesSpunLeft = 0;
     timesSpunCenter = 0;
     timesSpunRight = 0;
@@ -72,6 +75,8 @@ function init() {
     bet = 50;
     jackPot = 500;
     payOut = false;
+    won = false;
+    lost = false;
 
     //**Game Set Up**
     //Set up canvas and stage
@@ -94,8 +99,7 @@ function init() {
     button_Reset = new createjs.Bitmap("assets/images/resetButton.png");
 
     //Disabled Buttons
-    button_MaxBet_Disabled = new createjs.Bitmap("assets/images/betMaxButton_Disabled.png");
-    button_BetOne_Disabled = new createjs.Bitmap("assets/images/betOneButton_Disabled.png");
+    button_Spin_Disabled = new createjs.Bitmap("assets/images/spinButton_Disabled.png");
 
     //**Event Handlers**
     button_BetOne.addEventListener("click", betOneClicked, false);
@@ -134,6 +138,12 @@ function init() {
     button_Reset.scaleX = 2.8;
     button_Reset.scaleY = 1.8;
 
+    //Disabled spin button
+    button_Spin_Disabled.regX = -348;
+    button_Spin_Disabled.regY = -265;
+    button_Spin_Disabled.scaleX = 2.7;
+    button_Spin_Disabled.scaleY = 1.9;
+
     //Messages
     //Display won the jackpot notice
     jackPotWon = new createjs.Text("JackPot!!!", "25px Consolas", "#FFFFFF");
@@ -150,61 +160,6 @@ function init() {
     betLost.x = 630;
     betLost.y = 150;
 
-    //Display the default images on the reel, "Spin"
-    defaultReelImage();
-
-    //This function updates all the stages to display the new images.
-    updateStages(false);
-}
-
-//Handlers
-function betOneClicked() {
-    //Increase current bet by 50 until it hits max, then loop back to the start (50)
-    if (bet <= 200)
-        bet = (bet + 50);
-
-    if (bet == 250)
-        bet = 50;
-
-    updateStages(false);
-}
-
-//Big spender. Max bet is 200!
-function betMaxClicked() {
-    if (bal >= 200)
-        bet = 200;
-
-    updateStages(false);
-}
-
-//Reset the game
-function resetClicked() {
-    bal = 500;
-    bet = 50;
-    jackPot = 500;
-    won = false;
-    lost = false;
-    jp = false;
-
-    displayMoney();
-    defaultReelImage();
-    updateStages(true);
-}
-
-//Spin them wheels!
-function spinClicked() {
-    clearSlots();
-
-    gameOn = true;
-    reset = true;
-    payOut = true;
-    setSpinAmounts();
-
-    setUpReels();
-    updateStages(false);
-}
-
-function setUpReels() {
     //Scale and position the left reel
     leftReel = new createjs.Bitmap("assets/images/Melon.png");
     leftReel.regX = -250;
@@ -225,6 +180,78 @@ function setUpReels() {
     rightReel.regY = -100;
     rightReel.scaleX = 1.5;
     rightReel.scaleY = 1.5;
+
+    //Display the default images on the reel, "Spin"
+    defaultReelImage();
+
+    //This function updates all the stages to display the new images.
+    updateStages(true);
+}
+
+//Handlers
+function betOneClicked() {
+    if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
+        if (bet > bal)
+            disableSpin = true;
+        else
+            disableSpin = false;
+
+        //Increase current bet by 50 until it hits max, then loop back to the start (50)
+        if (bet <= 200)
+            bet = (bet + 50);
+
+        if (bet == 250)
+            bet = 50;
+
+        updateStages(false);
+    }
+}
+
+//If they wish to make a bet, the reels must be done spinning. If so, we set there bet to 200 (max). If they don't have enough cash, we disable spin.
+function betMaxClicked() {
+    if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
+        if (bet > bal)
+            disableSpin = true;
+        else
+            disableSpin = false;
+
+        if (bal >= 200)
+            bet = 200;
+
+        updateStages(false);
+    }
+}
+
+//Reset the game
+function resetClicked() {
+    //if the reels are not spinning, reset the game.
+    if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
+        bal = 500;
+        bet = 50;
+        jackPot = 500;
+        won = false;
+        lost = false;
+        jp = false;
+
+        displayMoney();
+        defaultReelImage();
+        updateStages(true);
+    }
+}
+
+//They have clicked to spin the reels. We shall allow this.
+function spinClicked() {
+    clearSlots(); //Wipe the slots so images don't stack
+
+    //Flags
+    gameOn = true;
+    reset = true;
+    payOut = true;
+
+    //Randomly decide how many times each reel spins
+    setSpinAmounts();
+
+    updateStages(false);
 }
 
 //Assign random spin values to each reel
@@ -234,14 +261,7 @@ function setSpinAmounts() {
     spinsRight = Math.floor(Math.random() * 7 + 1);
 }
 
-function moneyMonitor() {
-    //if (bal - 200 < 0)
-}
-
 function gameLoop() {
-    //Keep an eye on their balance, bet, grey out specific buttons where needed, etc.
-    moneyMonitor();
-
     //When the user clicks to start a new game, we need to reset some things.
     if (reset == true) {
         reset = false;
@@ -290,8 +310,15 @@ function updateStages(reels) {
     //Bring the background to front
     stage.addChild(background);
 
+    //TEMP
+    disableSpin = false;
+
     //Add the buttons
-    stage.addChild(button_Spin);
+    if (disableSpin == true)
+        stage.addChild(button_Spin_Disabled);
+    else
+        stage.addChild(button_Spin);
+
     stage.addChild(button_BetOne);
     stage.addChild(button_BetMax);
     stage.addChild(button_Reset);
@@ -313,6 +340,9 @@ function updateStages(reels) {
         won = false;
         jp = false;
     }
+
+    console.log("won  " + won);
+    console.log("lost  " + lost);
 
     //Display the cash values
     displayMoney();
@@ -359,6 +389,8 @@ function winOrLoose() {
 
         //Set a flag that they hit the Jack Pot
         jp = true;
+        won = false;
+        lost = false;
         return;
     }
 
@@ -368,6 +400,8 @@ function winOrLoose() {
 
         //Set a flag that they won.
         won = true;
+        lost = false;
+        jp = false;
         return;
     }
 
@@ -377,6 +411,8 @@ function winOrLoose() {
 
         //Set a flag that they won.
         won = true;
+        lost = false;
+        jp = false;
         return;
     }
 
@@ -386,6 +422,8 @@ function winOrLoose() {
 
         //Set a flag that they won.
         won = true;
+        lost = false;
+        jp = false;
         return;
     }
 
@@ -398,6 +436,8 @@ function winOrLoose() {
 
         //Set a flag that they lost.
         lost = true;
+        won = false;
+        jp = false;
         return;
     }
 }
