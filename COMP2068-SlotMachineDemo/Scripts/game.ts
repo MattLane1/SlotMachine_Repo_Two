@@ -37,14 +37,14 @@ var currentBet;//Post their bet
 var currentJackPot;//Post the current available jackpot
 
 //Reel spin controls (spinsLeft, center and right are how many times TO spin. Times spun is how many times it HAS BEEN spun)
-var spinsLeft;
-var timesSpunLeft;
+var spinsLeft;//How many times will the left wheel spin?
+var timesSpunLeft;//How many times HAS the left wheel spun?
 
-var spinsCenter;
-var timesSpunCenter;
+var spinsCenter;//How many times will the center wheel spin?
+var timesSpunCenter;//How many times HAS the left wheel spun?
 
-var spinsRight;
-var timesSpunRight;
+var spinsRight;//How many times will the right wheel spin?
+var timesSpunRight;//How many times HAS the left wheel spun?
 
 //Messages to the user
 var betWon;//Post a message saying they won!
@@ -67,17 +67,27 @@ var disableSpin;//Used if there bet is more then they have.
 
 function init() {
     //Default values
-    gameOn = false;
-    reset = false;
+    //Flags
+    gameOn = false;//Flag set true once the game has begun (once they click spin the first time)
+    reset = false;//Flag used to dictate that we are to reset the game
+    payOut = false;//Has a "round" completed? A round is defined as all wheels starting and running until they have reached the correct number of spins
+    won = false;//Did they win?
+    lost = false;//Did they loose?
+    disableSpin = false;
+
+    //Values
+    //Times spun
     timesSpunLeft = 0;
     timesSpunCenter = 0;
     timesSpunRight = 0;
+    //Spins to do
+    spinsLeft = 0;
+    spinsRight = 0;
+    spinsCenter = 0;
+    //Monetary Balances
     bal = 500;
     bet = 50;
     jackPot = 500;
-    payOut = false;
-    won = false;
-    lost = false;
 
     //**Game Set Up**
     //Set up canvas and stage
@@ -88,7 +98,7 @@ function init() {
     createjs.Ticker.setFPS(60); // 60 frames per second
     createjs.Ticker.addEventListener("tick", gameLoop);
 
-    //**Bitmap Images**
+    //**Bitmap Image Assignment**
     //Background
     background = new createjs.Bitmap("assets/images/NewSlot.png");
 
@@ -100,7 +110,7 @@ function init() {
     button_Reset = new createjs.Bitmap("assets/images/resetButton.png");
 
     //Disabled Buttons
-    button_Spin_Disabled = new createjs.Bitmap("assets/images/spinButton_Disabled.png");
+    button_Spin_Disabled = new createjs.Bitmap("assets/images/spinButtonDisabled.png");
 
     //**Event Handlers**
     button_BetOne.addEventListener("click", betOneClicked, false);
@@ -192,10 +202,9 @@ function init() {
 //Handlers
 function betOneClicked() {//If they wish to make a bet, the reels must be done spinning. If so, we will increase there bet by 50, to a max of 200, at which point it will loop back to 50. If they dont have enough cash, we disable spin.
     if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
-        if (bet > bal)
-            disableSpin = true;
-        else
-            disableSpin = false;
+
+        //TEMP
+        //console.log("disableSpin =  (BetOne) " + disableSpin);
 
         //Increase current bet by 50 until it hits max, then loop back to the start (50)
         if (bet <= 200)
@@ -204,23 +213,21 @@ function betOneClicked() {//If they wish to make a bet, the reels must be done s
         if (bet == 250)
             bet = 50;
 
-        updateStages(false);
+        //Display the cash values
+        updateStages(true);
     }
 }
 
 //If they wish to make a bet, the reels must be done spinning. If so, we set there bet to 200 (max). If they don't have enough cash, we disable spin.
-    function betMaxClicked() {
-        if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
-            if (bet > bal)
-                disableSpin = true;
+function betMaxClicked() {
 
-            else
-                disableSpin = false;
+        if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
 
             if (bal >= 200)
                 bet = 200;
 
-            updateStages(false);
+            //Display the cash values
+            updateStages(true);
         }
     }
 
@@ -240,20 +247,23 @@ function betOneClicked() {//If they wish to make a bet, the reels must be done s
             updateStages(true);
         }
     }
-
+  
 //They have clicked to spin the reels. We shall allow this.
 function spinClicked() {
-    clearSlots();//Wipe the slots so images don't stack
 
-    //Flags
-    gameOn = true;
-    reset = true;
-    payOut = true;
+    if (disableSpin == false) {//If spin is not disabled due to betting more than they have
+        clearSlots();//Wipe the slots so images don't stack
 
-    //Randomly decide how many times each reel spins
-    setSpinAmounts();
+        //Flags
+        gameOn = true;
+        reset = true;
+        payOut = true;
 
-    updateStages(false);
+        //Randomly decide how many times each reel spins
+        setSpinAmounts();
+
+        updateStages(false);
+    }
 }
 
 //Assign random spin values to each reel
@@ -295,6 +305,16 @@ function gameLoop() {
         }
     }
 
+    //Check if spin needs to be disabled, if so, set the flag and change the image!
+    if (bet > bal) {
+        stage.addChild(button_Spin_Disabled);
+        disableSpin = true;
+    }
+    else {
+        stage.addChild(button_Spin);
+        disableSpin = false;
+    }
+
     stage.update();
 }
 
@@ -311,9 +331,6 @@ function updateStages(reels) {
 
     //Bring the background to front
     stage.addChild(background);
-
-    //TEMP
-    disableSpin = false;
 
     //Add the buttons 
     if (disableSpin == true)
@@ -342,9 +359,6 @@ function updateStages(reels) {
         won = false;
         jp = false;
     }
-
-    console.log("won  " + won);
-    console.log("lost  " + lost);
 
     //Display the cash values
     displayMoney();

@@ -63,6 +63,7 @@
     <Content Include="assets\images\betMaxButton_Disabled.png" />
     <Content Include="assets\images\NewSlot.png" />
     <Content Include="assets\images\spin.jpg" />
+    <Content Include="assets\images\spinButtonDisabled.png" />
     <Content Include="graphic coordinates.xlsx" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
