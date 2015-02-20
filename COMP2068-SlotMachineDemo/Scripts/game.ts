@@ -1,4 +1,5 @@
 ﻿/*ASSIGNMENT TWO, WEB PROGRAMMING*/
+/* Version 12*/
 
 //Canvas and stage
 var canvas;
@@ -202,14 +203,10 @@ function init() {
 //Handlers
 function betOneClicked() {//If they wish to make a bet, the reels must be done spinning. If so, we will increase there bet by 50, to a max of 200, at which point it will loop back to 50. If they dont have enough cash, we disable spin.
     if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
-
-        //TEMP
-        //console.log("disableSpin =  (BetOne) " + disableSpin);
-
         //Increase current bet by 50 until it hits max, then loop back to the start (50)
-        if (bet <= 200)
             bet = (bet + 50);
 
+        //The max bet is 200, since they clicked bet one, it will add the 50, realize its over and correct before displaying to the screen
         if (bet == 250)
             bet = 50;
 
@@ -218,13 +215,9 @@ function betOneClicked() {//If they wish to make a bet, the reels must be done s
     }
 }
 
-//If they wish to make a bet, the reels must be done spinning. If so, we set there bet to 200 (max). If they don't have enough cash, we disable spin.
-function betMaxClicked() {
-
-        if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {
-
-            if (bal >= 200)
-                bet = 200;
+function betMaxClicked() {//If they wish to make a bet, the reels must be done spinning. If so, we will increase there bet by 50, to a max of 200, at which point it will loop back to 50. If they don't have enough cash, we disable spin.
+        if (timesSpunLeft == spinsLeft && timesSpunCenter == spinsCenter && timesSpunRight == spinsRight) {//If the reels are not spinning!
+            bet = 200;
 
             //Display the cash values
             updateStages(true);
@@ -338,6 +331,7 @@ function updateStages(reels) {
     else
         stage.addChild(button_Spin);
 
+    //Add the buttons to the stage
     stage.addChild(button_BetOne);
     stage.addChild(button_BetMax);
     stage.addChild(button_Reset);
@@ -397,6 +391,8 @@ function winOrLoose() {
     currentImageCenter--;
 
     updateStages(false);
+
+    bal = 100;
 
     //Three BARS! You win the jackpot!
     if (currentImageLeft == 1 && currentImageRight == 1 && currentImageCenter == 1) {
@@ -527,11 +523,10 @@ function rightReelSpin() {
 
 //Clear the game by killing all the children.
 function clearSlots() {
-    //Remove all children
+    //Remove all children 
     stage.removeChild(leftReel);
     stage.removeChild(centerReel);
     stage.removeChild(rightReel);
-
     stage.removeChild(defaultReelL);
     stage.removeChild(defaultReelR);
     stage.removeChild(defaultReelC);
