@@ -392,8 +392,6 @@ function winOrLoose() {
 
     updateStages(false);
 
-    bal = 100;
-
     //Three BARS! You win the jackpot!
     if (currentImageLeft == 1 && currentImageRight == 1 && currentImageCenter == 1) {
         bal = (bal + jackPot);
